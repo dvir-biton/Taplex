@@ -1,3 +1,5 @@
+import Action.Companion.toTaps
+
 val letters = mapOf(
     1 to 'א',
     2 to 'ב',
@@ -23,6 +25,31 @@ val letters = mapOf(
     22 to 'ת'
 )
 
+val lettersTap = mapOf(
+    "•" to 'א',
+    "••" to 'ב',
+    "•••" to 'ג',
+    "••••" to 'ד',
+    "|" to 'ה',
+    "•|" to 'ו',
+    "••|" to 'ז',
+    "•••|" to 'ח',
+    "••••|" to 'ט',
+    "||" to 'י',
+    "•||" to 'כ',
+    "••||" to 'ל',
+    "•••||" to 'מ',
+    "••••||" to 'נ',
+    "|||" to 'ס',
+    "•|||" to 'ע',
+    "••|||" to 'פ',
+    "•••|||" to 'צ',
+    "••••|||" to 'ק',
+    "||||" to 'ר',
+    "•||||" to 'ש',
+    "••||||" to 'ת'
+)
+
 val endings = mapOf(
     'כ' to 'ך',
     'מ' to 'ם',
@@ -32,20 +59,20 @@ val endings = mapOf(
 )
 
 fun main() {
-    val word: MutableList<Action> = mutableListOf(Action.Long, Action.Long, Action.Long, Action.Long, Action.Tap)
+    val word = "אתה מבין את זה"
 
     println(word)
-    println(Action.translate(word))
+    println(word.toTaps())
 }
 
 sealed class Action(val value: Int, val text: Char) {
-    data object Tap: Action(1, '*')
+    data object Tap: Action(1, '•')
     data object Long: Action(5, '|')
-    data object Space: Action(0, ' ')
-    data object Skip: Action(0, '-')
+    data object Space: Action(0, '/')
+    data object Skip: Action(0, ' ')
 
     companion object {
-        fun translate(actions: MutableList<Action>): String {
+        fun translateActions(actions: MutableList<Action>): String {
             val result = StringBuilder()
             var currentLetterValue = 0
             var prevAction: Action? = null
@@ -73,6 +100,43 @@ sealed class Action(val value: Int, val text: Char) {
                 result.append(convertValueToLetter(currentLetterValue, true))
             return result.toString()
         }
+
+        fun tapsToActions(input: String): MutableList<Action> {
+            val actions = mutableListOf<Action>()
+            input.forEach { char ->
+                when (char) {
+                    '•' -> actions.add(Tap)
+                    '|' -> actions.add(Long)
+                    ' ' -> actions.add(Space)
+                    '-' -> actions.add(Skip)
+                }
+            }
+            return actions
+        }
+
+        fun translateTaps(input: String): String {
+            return translateActions(tapsToActions(input))
+        }
+
+        fun String.toTaps(): String {
+            val tapsByLetter = lettersTap.entries.associate { (key, value) -> value to key }
+
+            val tapsStringBuilder = StringBuilder()
+            this.forEach { char ->
+                if (char == ' ') {
+                    tapsStringBuilder.insert(0, "/ ")
+                } else {
+                    val tapSequence = tapsByLetter[char]
+                    if (tapSequence != null) {
+                        if (tapsStringBuilder.isNotEmpty())
+                            tapsStringBuilder.insert(0, " ")
+                        tapsStringBuilder.insert(0, tapSequence)
+                    }
+                }
+            }
+            return tapsStringBuilder.toString()
+        }
+
 
         private fun convertValueToLetter(value: Int, isEndOfWord: Boolean): Char {
             val letter = letters[value] ?: ' '
