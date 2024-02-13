@@ -59,7 +59,7 @@ val endings = mapOf(
 )
 
 fun main() {
-    val word = "אתה מבין את זה"
+    val word = "אם אתה מבין את זה הצלחת"
 
     println(word)
     println(word.toTaps())
@@ -120,6 +120,7 @@ sealed class Action(val value: Int, val text: Char) {
 
         fun String.toTaps(): String {
             val tapsByLetter = lettersTap.entries.associate { (key, value) -> value to key }
+            val endingsByEnding = endings.entries.associate { (key, value) -> value to key }
 
             val tapsStringBuilder = StringBuilder()
             this.forEach { char ->
@@ -127,10 +128,12 @@ sealed class Action(val value: Int, val text: Char) {
                     tapsStringBuilder.insert(0, "/ ")
                 } else {
                     val tapSequence = tapsByLetter[char]
-                    if (tapSequence != null) {
-                        if (tapsStringBuilder.isNotEmpty())
-                            tapsStringBuilder.insert(0, " ")
-                        tapsStringBuilder.insert(0, tapSequence)
+                    val end = tapsByLetter[endingsByEnding[char]]
+
+                    val sequenceToAdd = tapSequence ?: end
+                    sequenceToAdd?.let {
+                        if (tapsStringBuilder.isNotEmpty()) tapsStringBuilder.insert(0, " ")
+                        tapsStringBuilder.insert(0, it)
                     }
                 }
             }
